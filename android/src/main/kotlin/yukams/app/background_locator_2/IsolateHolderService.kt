@@ -196,7 +196,12 @@ class IsolateHolderService : MethodChannel.MethodCallHandler, LocationUpdateList
         wakeLockTime = intent.getIntExtra(Keys.SETTINGS_ANDROID_WAKE_LOCK_TIME, 60) * 60 * 1000L
 
         locatorClient = context?.let { getLocationClient(it) }
-        locatorClient?.requestLocationUpdates(getLocationRequest(intent))
+        var omitLocationRequest = context?.let { PreferencesManager.getOmitLocationRequestOption(it) }
+        if (omitLocationRequest == true) {            
+            Log.i("BackgroundLocatorPlugin/IsolateHolderService", "WARNING! OMITTING LOCATION REQUEST")            
+        } else {
+            locatorClient?.requestLocationUpdates(getLocationRequest(intent))
+        }
 
         // Fill pluggable list
         if (intent.hasExtra(Keys.SETTINGS_INIT_PLUGGABLE)) {

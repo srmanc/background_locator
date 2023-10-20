@@ -96,6 +96,13 @@ class PreferencesManager {
                     .putInt(Keys.SETTINGS_ANDROID_LOCATION_CLIENT,
                             settings[Keys.SETTINGS_ANDROID_LOCATION_CLIENT] as Int)
                     .apply()
+
+            if (settings.containsKey(Keys.SETTINGS_ANDROID_OMIT_LOCATION_REQUEST)) {
+                sharedPreferences.edit()
+                        .putBoolean(Keys.SETTINGS_ANDROID_OMIT_LOCATION_REQUEST,
+                                settings[Keys.SETTINGS_ANDROID_OMIT_LOCATION_REQUEST] as Boolean)
+                        .apply()
+            }     
         }
 
         @JvmStatic
@@ -149,6 +156,8 @@ class PreferencesManager {
             settings[Keys.SETTINGS_ANDROID_LOCATION_CLIENT] =
                     sharedPreferences.getInt(Keys.SETTINGS_ANDROID_LOCATION_CLIENT, 0)
 
+            settings[Keys.SETTINGS_ANDROID_OMIT_LOCATION_REQUEST] = sharedPreferences.getBoolean(Keys.SETTINGS_ANDROID_OMIT_LOCATION_REQUEST, false)
+
             result[Keys.ARG_SETTINGS] = settings
             return result
         }
@@ -159,6 +168,14 @@ class PreferencesManager {
                     context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
             val client = sharedPreferences.getInt(Keys.SETTINGS_ANDROID_LOCATION_CLIENT, 0)
             return LocationClient.fromInt(client) ?: LocationClient.Google
+        }
+
+        @JvmStatic
+        fun getOmitLocationRequestOption(context: Context): Boolean {
+            val sharedPreferences =
+                    context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            val option = sharedPreferences.getBoolean(Keys.SETTINGS_ANDROID_OMIT_LOCATION_REQUEST, false)
+            return option
         }
 
         @JvmStatic

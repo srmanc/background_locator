@@ -42,6 +42,7 @@ class AndroidSettings extends LocatorSettings {
   final int wakeLockTime;
   final int interval;
   final LocationClient client;
+  final bool omitLocationRequest;
 
   /// [accuracy] The accuracy of location, Default is max accuracy NAVIGATION.
   ///
@@ -52,13 +53,16 @@ class AndroidSettings extends LocatorSettings {
   /// [androidNotificationSettings] Specific setting for android notification.
   ///
   /// [wakeLockTime] Time for living service in background in minutes. Only applies in android. Default is 60 minute.
+  ///
+  /// [omitLocationRequest] Experimental option for not requesting location access on custom devices to save battery life.
   const AndroidSettings(
       {LocationAccuracy accuracy = LocationAccuracy.NAVIGATION,
       this.interval = 5,
       double distanceFilter = 0,
       this.androidNotificationSettings = const AndroidNotificationSettings(),
       this.wakeLockTime = 60,
-      this.client = LocationClient.google})
+      this.client = LocationClient.google,
+      this.omitLocationRequest = false})
       : super(accuracy: accuracy, distanceFilter: distanceFilter);
 
   Map<String, dynamic> toMap() {
@@ -67,19 +71,21 @@ class AndroidSettings extends LocatorSettings {
       Keys.SETTINGS_INTERVAL: interval,
       Keys.SETTINGS_DISTANCE_FILTER: distanceFilter,
       Keys.SETTINGS_ANDROID_WAKE_LOCK_TIME: wakeLockTime,
-      Keys.SETTINGS_ANDROID_NOTIFICATION_CHANNEL_NAME:
-          androidNotificationSettings.notificationChannelName,
+      Keys.SETTINGS_ANDROID_NOTIFICATION_CHANNEL_NAME: 
+        androidNotificationSettings.notificationChannelName,
       Keys.SETTINGS_ANDROID_NOTIFICATION_TITLE:
-          androidNotificationSettings.notificationTitle,
+        androidNotificationSettings.notificationTitle,
       Keys.SETTINGS_ANDROID_NOTIFICATION_MSG:
-          androidNotificationSettings.notificationMsg,
+        androidNotificationSettings.notificationMsg,
       Keys.SETTINGS_ANDROID_NOTIFICATION_BIG_MSG:
-          androidNotificationSettings.notificationBigMsg,
+        androidNotificationSettings.notificationBigMsg,
       Keys.SETTINGS_ANDROID_NOTIFICATION_ICON:
-          androidNotificationSettings.notificationIcon,
+        androidNotificationSettings.notificationIcon,
       Keys.SETTINGS_ANDROID_NOTIFICATION_ICON_COLOR:
-          androidNotificationSettings.notificationIconColor.value,
-      Keys.SETTINGS_ANDROID_LOCATION_CLIENT: client.index
+        androidNotificationSettings.notificationIconColor.value,
+      Keys.SETTINGS_ANDROID_LOCATION_CLIENT: client.index,
+      Keys.SETTINGS_ANDROID_OMIT_LOCATION_REQUEST:
+        omitLocationRequest
     };
   }
 }
