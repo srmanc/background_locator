@@ -1,4 +1,5 @@
 #import "BackgroundLocatorPlugin.h"
+#import "FlutterEngineGroupCache.h"
 #import "Globals.h"
 #import "Utils/Util.h"
 #import "Preferences/PreferencesManager.h"
@@ -136,18 +137,14 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
 - (instancetype)init:(NSObject<FlutterPluginRegistrar> *)registrar {
     self = [super init];
-    
-    _headlessRunner = [[FlutterEngine alloc] initWithName:@"LocatorIsolate" project:nil allowHeadlessExecution:YES];
+
+    _headlessRunner = nil;
     _registrar = registrar;
     [self prepareLocationManager];
-    
+
     _mainChannel = [FlutterMethodChannel methodChannelWithName:kChannelId
                                                binaryMessenger:[registrar messenger]];
     [registrar addMethodCallDelegate:self channel:_mainChannel];
-    
-    _callbackChannel =
-    [FlutterMethodChannel methodChannelWithName:kBackgroundChannelId
-                                binaryMessenger:[_headlessRunner binaryMessenger] ];
     return self;
 }
 
@@ -163,10 +160,29 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [PreferencesManager setCallbackDispatcherHandle:handle];
     FlutterCallbackInformation *info = [FlutterCallbackCache lookupCallbackInformation:handle];
     NSAssert(info != nil, @"failed to find callback");
-    
+
     NSString *entrypoint = info.callbackName;
     NSString *uri = info.callbackLibraryPath;
-    [_headlessRunner runWithEntrypoint:entrypoint libraryURI:uri];
+    FlutterEngineGroupCache *engineGroupCache = [FlutterEngineGroupCache sharedInstance];
+    FlutterEngineGroup *engineGroup = [engineGroupCache get:@"main"];
+    if (!engineGroup) {
+        FlutterEngineGroup *newEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"main" project:nil];
+        [engineGroupCache put:@"main" engineGroup:newEngineGroup];
+        engineGroup = newEngineGroup;
+    }
+    if (_headlessRunner == nil) {
+        NSString *handleString = [NSString stringWithFormat:@"%lld", handle];
+        NSArray *args = @[handleString];
+        FlutterEngineGroupOptions* options = [[FlutterEngineGroupOptions alloc] init];
+        options.entrypoint = @"entrypoint";
+        options.libraryURI = @"package:background_locator_2/background_locator.dart";
+        options.initialRoute = nil;
+        options.entrypointArgs = args;
+        _headlessRunner = [engineGroup makeEngineWithOptions:options];
+    }
+    _callbackChannel =
+    [FlutterMethodChannel methodChannelWithName:kBackgroundChannelId
+                                binaryMessenger:[_headlessRunner binaryMessenger] ];
     NSAssert(registerPlugins != nil, @"failed to set registerPlugins");
 
     // Once our headless runner has been started, we need to register the application's plugins
