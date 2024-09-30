@@ -1,5 +1,5 @@
 #import "BackgroundLocatorPlugin.h"
-#import "FlutterEngineGroupCache.h"
+#import "SwizzledFlutterEngineGroupCache.h"
 #import "Globals.h"
 #import "Utils/Util.h"
 #import "Preferences/PreferencesManager.h"
@@ -163,11 +163,15 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
     NSString *entrypoint = info.callbackName;
     NSString *uri = info.callbackLibraryPath;
-    FlutterEngineGroupCache *engineGroupCache = [FlutterEngineGroupCache sharedInstance];
-    FlutterEngineGroup *engineGroup = [engineGroupCache get:@"main"];
+    NSString *groupName = @"main";
+    FlutterEngineGroup *engineGroup = nil;
+    SwizzledFlutterEngineGroupCache *engineGroupCache = [SwizzledFlutterEngineGroupCache sharedInstance];
+    if (engineGroupCache) {
+        engineGroup = [engineGroupCache get:groupName];
+    }
     if (!engineGroup) {
-        FlutterEngineGroup *newEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"main" project:nil];
-        [engineGroupCache put:@"main" engineGroup:newEngineGroup];
+        FlutterEngineGroup *newEngineGroup = [[FlutterEngineGroup alloc] initWithName:groupName project:nil];
+        [engineGroupCache put:groupName engineGroup:newEngineGroup];
         engineGroup = newEngineGroup;
     }
     if (_headlessRunner == nil) {
